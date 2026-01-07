@@ -1,0 +1,103 @@
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..b4474ac
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,10 @@
++gosset
++interp
++work/
++*.o
++*.a
++!codelib.a
++!classic.a
++!codelibprog.a
++out.log
++err.log
+diff --git a/LICENSE b/LICENSE
+new file mode 100644
+index 0000000..337e0f3
+--- /dev/null
++++ b/LICENSE
+@@ -0,0 +1,5 @@
++This software was developed by R. H. Hardin and N. J. A. Sloane at AT&T between 1991 and 2003.
++It was released into the Public Domain on August 12, 2017.
++
++As a Public Domain work, there are no restrictions on its use, modification, or distribution.
++Original source: https://neilsloane.com/gosset/
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..e6dd994
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,39 @@
++# Gosset
++
++**Gosset** is a general-purpose program for constructing experimental designs, developed by **R. H. Hardin** and **N. J. A. Sloane** at AT&T Bell Labs between 1991 and 2003.
++
++It was placed in the **Public Domain** on August 12, 2017.
++
++## Overview
++
++Gosset can be used to:
++- Find D-optimal, A-optimal, and I-optimal designs.
++- Handle both discrete and continuous variables.
++- Respect complex constraints.
++- Solve packing and covering problems.
++
++It is particularly famous for its use in finding "optimal" points on spheres and other regions.
++
++## Compilation
++
++This version has been slightly modified to compile on modern GCC (fix for `non-constant initializer` and missing headers).
++
++To compile:
++```bash
++gcc -std=gnu89 -fpermissive -w main.c -o gosset -lm
++```
++
++## Usage
++
++Run the `gosset` binary. It acts as an interactive shell.
++First, specify a work directory:
++```
++cd work
++```
++Then you can use commands like `help` to see available topics.
++
++## History
++
++This repository is a mirror of the code available at [neilsloane.com/gosset/](https://neilsloane.com/gosset/).
++The original archive was distributed as a `cpio` file named `codemart.cpio`.
++The version history (as documented in the `changes` file) goes from 1991 (v000) to 2003 (v284).
+diff --git a/main.c b/main.c
+index 6da76ae..78b16d7 100644
+--- a/main.c
++++ b/main.c
+@@ -15,6 +15,9 @@ char *program;
+ #define NSLIB 100
+ char *slib[NSLIB];
+ #include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
+ #include "version.h"
+ struct momsym {
+ 	char *odd;
+@@ -32,7 +35,7 @@ struct xmom {
+ int nxmom;
+ FILE *popen();
+ double *funmul,*funadd;
+-FILE *outfd=stdout;
++FILE *outfd;
+ int outfdpipe;
+ char *prompt;
+ int intrprec,intrfmin,intrstart,intruse,intrinvert;
+@@ -1323,6 +1326,7 @@ FILE *f;
+ main(ac,av)
+ char *av[];
+ {
++	outfd = stdout;
+ options:
+ 	if(ac>1&&strcmp(av[1],"-echo")==0) {
+ 		echo=1;
